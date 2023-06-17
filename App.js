@@ -7,10 +7,13 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Button,
 } from "react-native";
 import Constants from "expo-constants";
 import * as SQLite from "expo-sqlite";
 import Expenses from "./Expenses";
+import MyModal from './component/MyModal';
+import { initDatabase, addExpense, deleteExpense, getExpenses } from "./config/Database";
 
 const db = SQLite.openDatabase("db.db");
 
@@ -22,23 +25,60 @@ export default function App() {
   const [paymentType, setPaymentType] = useState("");
   const [date, setDate] = useState("");
 
-  useEffect(() => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        "CREATE TABLE IF NOT EXISTS expenses (id INTEGER PRIMARY KEY AUTOINCREMENT, description TEXT, value REAL, expenseType TEXT, paymentType TEXT, date TEXT);"
-      );
-    }, null, updateExpenses);
-  }, []);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [modalText, setModalText] = useState('Hello World!');
+  const [selectedExpense, setSelectedExpense] = useState(null);
 
-  const updateExpenses = () => {
-    db.transaction((tx) => {
-      tx.executeSql("SELECT * FROM expenses;", [], (_, { rows }) => {
-        setExpenses(rows._array);
-      });
-    });
+  const handleSelectExpense = (expense) => {
+    setSelectedExpense(expense);
   };
 
-  const addExpense = () => {
+
+  const handleOpenModal = () => {
+    setModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+  };
+
+  useEffect(() => {
+    initDatabase();
+    updateExpenses();
+  }, []);
+
+  useEffect(() => {
+    if (selectedExpense) {
+      setDescription(selectedExpense.description);
+      setValue(selectedExpense.value.toString());
+      setExpenseType(selectedExpense.expenseType);
+      setPaymentType(selectedExpense.paymentType);
+      setDate(selectedExpense.date);
+    } else {
+      setDescription("");
+      setValue("");
+      setExpenseType("");
+      setPaymentType("");
+      setDate("");
+    }
+  }, [selectedExpense]);
+
+  const updateExpenses = async () => {
+    try {
+      const expenses = await getExpenses();
+      setExpenses(expenses);
+    } catch (error) {
+      console.error("Failed to retrieve expenses:", error);
+    }
+  };
+
+  const handleModal = (visible, text) => {
+    setModalVisible(visible); 
+    setModalText(text);
+  }
+
+
+  const handleAddExpense = async () => {
     if (
       description.trim() === "" ||
       value.trim() === "" ||
@@ -46,47 +86,38 @@ export default function App() {
       paymentType.trim() === "" ||
       date.trim() === ""
     ) {
-      alert("Erro", "Por favor, preencha todos os campos");
+      setModalText("Por favor, preencha todos os campos");
+      setModalVisible(true);
       return;
     }
 
-    db.transaction((tx) => {
-      tx.executeSql(
-        "INSERT INTO expenses (description, value, expenseType, paymentType, date) VALUES (?, ?, ?, ?, ?)",
-        [description, parseFloat(value), expenseType, paymentType, date],
-        (_, { rowsAffected }) => {
-          if (rowsAffected > 0) {
-            alert("Sucesso", "Despesa adicionada com sucesso");
-            updateExpenses();
-            setDescription("");
-            setValue("");
-            setExpenseType("");
-            setPaymentType("");
-            setDate("");
-          } else {
-            alert("Erro", "Falha ao adicionar a despesa");
-          }
-        }
-      );
-    });
+    try {
+      setSelectedExpense(null); 
+      await addExpense(description, value, expenseType, paymentType, date);
+      setModalVisible(true);
+      handleModal(true,"Despesa adicionada com sucesso" )
+      updateExpenses();
+      setDescription("");
+      setValue("");
+      setExpenseType("");
+      setPaymentType("");
+      setDate("");
+    } catch (error) {
+      console.error("Failed to add expense:", error);
+      alert("Erro", "Falha ao adicionar a despesa");
+    }
+  };
+  const handleDeleteExpense = async (id) => {
+    try {
+      await deleteExpense(id);
+      alert("Sucesso", "Despesa excluída com sucesso");
+      updateExpenses();
+    } catch (error) {
+      console.error("Failed to delete expense:", error);
+      alert("Erro", "Falha ao excluir a despesa");
+    }
   };
 
-  const deleteExpense = (id) => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        "DELETE FROM expenses WHERE id = ?",
-        [id],
-        (_, { rowsAffected }) => {
-          if (rowsAffected > 0) {
-            alert("Sucesso", "Despesa excluída com sucesso");
-            updateExpenses();
-          } else {
-            alert("Erro", "Falha ao excluir a despesa");
-          }
-        }
-      );
-    });
-  };
 
   return (
     <View style={styles.container}>
@@ -138,12 +169,18 @@ export default function App() {
             onChangeText={setDate}
           />
         </View>
-        <TouchableOpacity style={styles.addButton} onPress={addExpense}>
-          <Text style={styles.addButtonLabel}>Salvar</Text>
-        </TouchableOpacity>
+        <MyModal visible={isModalVisible} onClose={handleCloseModal} modalText={modalText} />
+        <Button
+          title="Press me"
+          onPress={handleAddExpense}
+        />
       </ScrollView>
       <ScrollView style={styles.listArea}>
-        <Expenses expenses={expenses} onPressExpense={deleteExpense} />
+        {/* <Expenses expenses={expenses} onPressExpense={handleDeleteExpense} /> */}
+        <Expenses  expenses={expenses}
+          onPressExpense={handleDeleteExpense}
+          selectedExpense={selectedExpense}
+          onSelectExpense={setSelectedExpense} />
       </ScrollView>
     </View>
   );

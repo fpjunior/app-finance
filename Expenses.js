@@ -1,13 +1,13 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
-const Expense = ({ expense, onPressExpense }) => {
+const Expense = ({ expense, onPressExpense, selected, onSelectExpense }) => {
   const { id, description, value, expenseType, paymentType, date } = expense;
 
   return (
     <TouchableOpacity
-      onPress={() => onPressExpense && onPressExpense(id)}
-      style={styles.expenseItem}
+      onPress={() => onSelectExpense && onSelectExpense(expense)}
+      style={[styles.expenseItem, selected && styles.selectedExpenseItem]}
     >
       <View style={styles.expenseItemLeft}>
         <Text style={styles.expenseItemDescription}>{description}</Text>
@@ -20,7 +20,7 @@ const Expense = ({ expense, onPressExpense }) => {
   );
 };
 
-const Expenses = ({ expenses, onPressExpense }) => {
+const Expenses = ({ expenses, onPressExpense, selectedExpense, onSelectExpense }) => {
   return (
     <View style={styles.sectionContainer}>
       <Text style={styles.sectionHeading}>Expenses</Text>
@@ -29,6 +29,8 @@ const Expenses = ({ expenses, onPressExpense }) => {
           key={expense.id}
           expense={expense}
           onPressExpense={onPressExpense}
+          selected={expense === selectedExpense}
+          onSelectExpense={onSelectExpense}
         />
       ))}
     </View>
@@ -60,6 +62,9 @@ const styles = StyleSheet.create({
   expenseItemValue: {},
   expenseItemType: {},
   expenseItemDate: {},
+  selectedExpenseItem: {
+    backgroundColor: "#f0f0f0",
+  }
 });
 
 export default Expenses;
