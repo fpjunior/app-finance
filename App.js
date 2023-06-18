@@ -1,22 +1,19 @@
-import React, { useState, useEffect, Alert } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  Platform,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
   Button,
 } from "react-native";
-import Constants from "expo-constants";
 import * as SQLite from "expo-sqlite";
 import Expenses from "./Expenses";
 import MyModal from './component/MyModal';
 import { initDatabase, addExpense, deleteExpense, getExpenses } from "./config/Database";
+import TotalCard from './component/TotalCard';
+import AppStyle from "./styles/AppStyle";
 
 const db = SQLite.openDatabase("db.db");
-
 export default function App() {
   const [expenses, setExpenses] = useState([]);
   const [description, setDescription] = useState("");
@@ -28,6 +25,10 @@ export default function App() {
   const [isModalVisible, setModalVisible] = useState(false);
   const [modalText, setModalText] = useState('Hello World!');
   const [selectedExpense, setSelectedExpense] = useState(null);
+
+  const [totalDespesas, setTotalDespesas] = useState(0);
+  const [totalReceitas, setTotalReceitas] = useState(0);
+
 
   const handleSelectExpense = (expense) => {
     setSelectedExpense(expense);
@@ -67,16 +68,32 @@ export default function App() {
     try {
       const expenses = await getExpenses();
       setExpenses(expenses);
+      // Calcular o total das despesas
+      const totalDespesas = expenses.reduce((acc, expense) => {
+        if (expense.expenseType === 'despesa') {
+          return acc + parseFloat(expense.value);
+        }
+        return acc;
+      }, 0);
+      setTotalDespesas(totalDespesas);
+
+      // Calcular o total das receitas
+      const totalReceitas = expenses.reduce((acc, expense) => {
+        if (expense.expenseType === 'receita') {
+          return acc + parseFloat(expense.value);
+        }
+        return acc;
+      }, 0);
+      setTotalReceitas(totalReceitas);
     } catch (error) {
       console.error("Failed to retrieve expenses:", error);
     }
   };
 
   const handleModal = (visible, text) => {
-    setModalVisible(visible); 
+    setModalVisible(visible);
     setModalText(text);
   }
-
 
   const handleAddExpense = async () => {
     if (
@@ -92,10 +109,10 @@ export default function App() {
     }
 
     try {
-      setSelectedExpense(null); 
+      setSelectedExpense(null);
       await addExpense(description, value, expenseType, paymentType, date);
       setModalVisible(true);
-      handleModal(true,"Despesa adicionada com sucesso" )
+      handleModal(true, "Despesa adicionada com sucesso")
       updateExpenses();
       setDescription("");
       setValue("");
@@ -118,13 +135,12 @@ export default function App() {
     }
   };
 
-
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Despesas</Text>
       <ScrollView style={styles.formContainer}>
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Descrição</Text>
+          {/* <Text style={styles.label}>Descrição</Text> */}
           <TextInput
             style={styles.input}
             placeholder="Descrição da despesa"
@@ -132,52 +148,68 @@ export default function App() {
             onChangeText={setDescription}
           />
         </View>
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Valor</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Valor da despesa"
-            keyboardType="numeric"
-            value={value}
-            onChangeText={setValue}
-          />
+        <View style={styles.formGroupRow}>
+          <View style={styles.formGroup}>
+            {/* <Text style={styles.label}>Valor</Text> */}
+            <TextInput
+              style={styles.input}
+              placeholder="Valor da despesa"
+              keyboardType="numeric"
+              value={value}
+              onChangeText={setValue}
+            />
+          </View>
+          <View style={styles.formGroup}>
+            {/* <Text style={styles.label}>Tipo de Despesa</Text> */}
+            <TextInput
+              style={styles.input}
+              placeholder="Tipo de despesa"
+              value={expenseType}
+              onChangeText={setExpenseType}
+            />
+          </View>
+
         </View>
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Tipo de Despesa</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Tipo de despesa"
-            value={expenseType}
-            onChangeText={setExpenseType}
-          />
+        <View style={styles.formGroupRow}>
+          <View style={styles.formGroup}>
+            {/* <Text style={styles.label}>Tipo de Transação</Text> */}
+            <TextInput
+              style={styles.input}
+              placeholder="Tipo de transação"
+              value={paymentType}
+              onChangeText={setPaymentType}
+            />
+          </View>
+          <View style={styles.formGroup}>
+            {/* <Text style={styles.label}>Data da Despesa</Text> */}
+            <TextInput
+              style={styles.input}
+              placeholder="Data da despesa"
+              value={date}
+              onChangeText={setDate}
+            />
+          </View>
         </View>
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Tipo de Transação</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Tipo de transação"
-            value={paymentType}
-            onChangeText={setPaymentType}
-          />
-        </View>
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Data da Despesa</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Data da despesa"
-            value={date}
-            onChangeText={setDate}
-          />
-        </View>
+
         <MyModal visible={isModalVisible} onClose={handleCloseModal} modalText={modalText} />
+
         <Button
-          title="Press me"
+          title="Salvar"
           onPress={handleAddExpense}
         />
+
+        <View style={styles.formGroupRow}>
+          <View style={styles.formGroup}>
+            <TotalCard title="Total Despesas" total={totalDespesas} />
+          </View>
+          <View style={styles.formGroup}>
+            <TotalCard title="Total Receitas" total={totalReceitas} />
+          </View>
+        </View>
+
       </ScrollView>
       <ScrollView style={styles.listArea}>
-        {/* <Expenses expenses={expenses} onPressExpense={handleDeleteExpense} /> */}
-        <Expenses  expenses={expenses}
+        <Expenses expenses={expenses}
           onPressExpense={handleDeleteExpense}
           selectedExpense={selectedExpense}
           onSelectExpense={setSelectedExpense} />
@@ -186,54 +218,4 @@ export default function App() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: Constants.statusBarHeight,
-    backgroundColor: "#fff",
-  },
-  heading: {
-    fontSize: 20,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginVertical: 16,
-  },
-  formContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  formGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 4,
-    padding: 8,
-  },
-  addButton: {
-    backgroundColor: "#1c9963",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 4,
-    alignSelf: "center",
-    marginBottom: 16,
-  },
-  addButtonLabel: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  listArea: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-});
-
-// export default App;
-
-
+const styles = AppStyle
