@@ -5,10 +5,19 @@ import ExpensesStyle from "./styles/ExpensesStyle";
 const Expense = ({ expense, onPressExpense, selected, onSelectExpense }) => {
   const { id, description, value, expenseType, paymentType, date } = expense;
 
+  const getExpenseItemStyle = () => {
+    if (expenseType === 'despesa') {
+      return [styles.expenseItem, selected && styles.selectedExpenseItem, styles.expenseItemDespesa];
+    } else if (expenseType === 'receita') {
+      return [styles.expenseItem, selected && styles.selectedExpenseItem, styles.expenseItemReceita];
+    }
+    return [styles.expenseItem, selected && styles.selectedExpenseItem];
+  };
+
   return (
     <TouchableOpacity
       onPress={() => onSelectExpense && onSelectExpense(expense)}
-      style={[styles.expenseItem, selected && styles.selectedExpenseItem]}
+      style={getExpenseItemStyle()} 
     >
       <View style={styles.expenseItemLeft}>
         <Text style={styles.expenseItemDescription}>{description}</Text>
@@ -24,7 +33,6 @@ const Expense = ({ expense, onPressExpense, selected, onSelectExpense }) => {
 const Expenses = ({ expenses, onPressExpense, selectedExpense, onSelectExpense }) => {
   return (
     <View style={styles.sectionContainer}>
-      <Text style={styles.sectionHeading}>Expenses</Text>
       {expenses.map((expense) => (
         <Expense
           key={expense.id}

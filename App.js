@@ -12,13 +12,14 @@ import MyModal from './component/MyModal';
 import { initDatabase, addExpense, deleteExpense, getExpenses } from "./config/Database";
 import TotalCard from './component/TotalCard';
 import AppStyle from "./styles/AppStyle";
+import { RadioButton } from 'react-native-paper';
 
 const db = SQLite.openDatabase("db.db");
 export default function App() {
   const [expenses, setExpenses] = useState([]);
   const [description, setDescription] = useState("");
   const [value, setValue] = useState("");
-  const [expenseType, setExpenseType] = useState("");
+  // const [expenseType, setExpenseType] = useState("");
   const [paymentType, setPaymentType] = useState("");
   const [date, setDate] = useState("");
 
@@ -28,6 +29,9 @@ export default function App() {
 
   const [totalDespesas, setTotalDespesas] = useState(0);
   const [totalReceitas, setTotalReceitas] = useState(0);
+  const [expenseType, setExpenseType] = useState('despesa');
+  const [selectedExpenseType, setSelectedExpenseType] = useState('despesa');
+
 
 
   const handleSelectExpense = (expense) => {
@@ -52,12 +56,14 @@ export default function App() {
     if (selectedExpense) {
       setDescription(selectedExpense.description);
       setValue(selectedExpense.value.toString());
+      setSelectedExpenseType(selectedExpense.expenseType); // Updated this line
       setExpenseType(selectedExpense.expenseType);
       setPaymentType(selectedExpense.paymentType);
       setDate(selectedExpense.date);
     } else {
       setDescription("");
       setValue("");
+      setSelectedExpenseType('despesa'); 
       setExpenseType("");
       setPaymentType("");
       setDate("");
@@ -160,19 +166,33 @@ export default function App() {
             />
           </View>
           <View style={styles.formGroup}>
-            {/* <Text style={styles.label}>Tipo de Despesa</Text> */}
-            <TextInput
-              style={styles.input}
-              placeholder="Tipo de despesa"
-              value={expenseType}
-              onChangeText={setExpenseType}
-            />
+            <View style={styles.fieldset}>
+              <View style={styles.radioButtonGroup}>
+                <View style={styles.radioButtonContainer}>
+                  <RadioButton.Item
+                    label="Despesa"
+                    value="despesa"
+                    status={selectedExpenseType === 'despesa' ? 'checked' : 'unchecked'}
+                    onPress={() => setSelectedExpenseType('despesa')}
+                    style={styles.radioButton}
+                  />
+                </View>
+                <View style={styles.radioButtonContainer}>
+                  <RadioButton.Item
+                    label="Receita"
+                    value="receita"
+                    status={expenseType === 'receita' ? 'checked' : 'unchecked'}
+                    onPress={() => setExpenseType('receita')}
+                    style={styles.radioButton}
+                  />
+                </View>
+              </View>
+            </View>
           </View>
 
         </View>
         <View style={styles.formGroupRow}>
           <View style={styles.formGroup}>
-            {/* <Text style={styles.label}>Tipo de Transação</Text> */}
             <TextInput
               style={styles.input}
               placeholder="Tipo de transação"

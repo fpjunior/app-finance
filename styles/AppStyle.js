@@ -58,4 +58,19 @@ export default StyleSheet.create({
     paddingHorizontal: 16,
     marginTop: -590
   },
+  radioButtonGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  radioButtonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '50%',
+  },
+  radioButton: {
+    alignSelf: 'flex-start', // Ajuste conforme necessário
+  },
+  radioButtonLabel: {
+    marginLeft: 8, // Espaçamento entre o radio button e o texto
+  },
 });
