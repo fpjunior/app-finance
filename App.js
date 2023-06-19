@@ -130,9 +130,10 @@ export default function App() {
       alert("Erro", "Falha ao adicionar a despesa");
     }
   };
-  const handleDeleteExpense = async (id) => {
+  
+  const handleDeleteExpense = async (expense) => {
     try {
-      await deleteExpense(id);
+      await deleteExpense(expense.id);
       alert("Sucesso", "Despesa excluída com sucesso");
       updateExpenses();
     } catch (error) {

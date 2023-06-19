@@ -1,8 +1,9 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
+import Swipeable from 'react-native-swipeable';
 import ExpensesStyle from "./styles/ExpensesStyle";
 
-const Expense = ({ expense, onPressExpense, selected, onSelectExpense }) => {
+const Expense = ({ expense, onPressExpense, selected, onSelectExpense, onDeleteExpense, onEditExpense }) => {
   const { id, description, value, expenseType, paymentType, date } = expense;
 
   const getExpenseItemStyle = () => {
@@ -14,23 +15,40 @@ const Expense = ({ expense, onPressExpense, selected, onSelectExpense }) => {
     return [styles.expenseItem, selected && styles.selectedExpenseItem];
   };
 
-  return (
+  const swipeButtons = [
     <TouchableOpacity
-      onPress={() => onSelectExpense && onSelectExpense(expense)}
-      style={getExpenseItemStyle()} 
+      style={styles.deleteButton}
+      onPress={() => onDeleteExpense && onDeleteExpense(expense)}
     >
-      <View style={styles.expenseItemLeft}>
-        <Text style={styles.expenseItemDescription}>{description}</Text>
-        <Text style={styles.expenseItemValue}>Valor: {value}</Text>
-        <Text style={styles.expenseItemType}>Tipo: {expenseType}</Text>
-        <Text style={styles.expenseItemType}>Transação: {paymentType}</Text>
-        <Text style={styles.expenseItemDate}>Data: {date}</Text>
-      </View>
+      <Text style={styles.deleteButtonText}>Delete</Text>
+    </TouchableOpacity>,
+    <TouchableOpacity
+      style={styles.editButton}
+      onPress={() => onEditExpense && onEditExpense(expense)}
+    >
+      <Text style={styles.editButtonText}>Edit</Text>
     </TouchableOpacity>
+  ];
+
+  return (
+    <Swipeable rightButtons={swipeButtons} onSwipeableRightOpen={() => {}}>
+      <TouchableOpacity
+        onPress={() => onSelectExpense && onSelectExpense(expense)}
+        style={getExpenseItemStyle()} 
+      >
+        <View style={styles.expenseItemLeft}>
+          <Text style={styles.expenseItemDescription}>{description}</Text>
+          <Text style={styles.expenseItemValue}>Valor: {value}</Text>
+          <Text style={styles.expenseItemType}>Tipo: {expenseType}</Text>
+          <Text style={styles.expenseItemType}>Transação: {paymentType}</Text>
+          <Text style={styles.expenseItemDate}>Data: {date}</Text>
+        </View>
+      </TouchableOpacity>
+    </Swipeable>
   );
 };
 
-const Expenses = ({ expenses, onPressExpense, selectedExpense, onSelectExpense }) => {
+const Expenses = ({ expenses, onPressExpense, selectedExpense, onSelectExpense, onDeleteExpense, onEditExpense }) => {
   return (
     <View style={styles.sectionContainer}>
       {expenses.map((expense) => (
@@ -40,12 +58,14 @@ const Expenses = ({ expenses, onPressExpense, selectedExpense, onSelectExpense }
           onPressExpense={onPressExpense}
           selected={expense === selectedExpense}
           onSelectExpense={onSelectExpense}
+          onDeleteExpense={onDeleteExpense}
+          onEditExpense={onEditExpense}
         />
       ))}
     </View>
   );
 };
 
-const styles = ExpensesStyle
+const styles = ExpensesStyle;
 
 export default Expenses;
