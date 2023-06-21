@@ -5,6 +5,7 @@ import {
   TextInput,
   View,
   Button,
+  Alert,
 } from "react-native";
 import * as SQLite from "expo-sqlite";
 import Expenses from "./Expenses";
@@ -125,8 +126,9 @@ export default function App() {
       alert("Sucesso", "Despesa excluída com sucesso");
       updateExpenses();
     } catch (error) {
+      setModalVisible(false)
       console.error("Failed to delete expense:", error);
-      alert("Erro", "Falha ao excluir a despesa");
+      Alert.alert("Erro", "Falha ao excluir a despesa");
     }
   };
 
@@ -200,8 +202,7 @@ export default function App() {
           </View>
         </View>
 
-        <MyModal visible={isModalVisible} onClose={handleCloseModal} modalText={modalText} />
-
+        <MyModal onDelete={() => handleDeleteExpense(selectedExpense)} visible={isModalVisible} onClose={handleCloseModal} modalText={modalText} />
         <Button
           title="Salvar"
           onPress={handleAddExpense}
@@ -220,9 +221,6 @@ export default function App() {
       <ScrollView style={styles.listArea}>
         <Expenses expenses={expenses}
           onDeleteExpense={handleDeleteExpense}
-          onPressExpense={handleDeleteExpense}
-          selectedExpense={selectedExpense}
-          onEditExpense={setSelectedExpense}
           onSelectExpense={setSelectedExpense} />
       </ScrollView>
     </View>

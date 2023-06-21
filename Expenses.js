@@ -1,11 +1,16 @@
-import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import Swipeable from 'react-native-swipeable';
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, Animated } from "react-native";
+import { Swipeable } from 'react-native-gesture-handler';
 import ExpensesStyle from "./styles/ExpensesStyle";
 
-const Expense = ({ expense, onPressExpense, selected, onSelectExpense, onDeleteExpense, onEditExpense }) => {
-  const { id, description, value, expenseType, paymentType, date } = expense;
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import MyModal from "./component/MyModal";
 
+const Expense = ({ expense, onPressExpense, selected, onSelectExpense, onDeleteExpense, onEditExpense, onConfirmDelete }) => {
+  const { id, description, value, expenseType, paymentType, date } = expense;
+  const [showActions, setShowActions] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  
   const getExpenseItemStyle = () => {
     if (expenseType === 'despesa') {
       return [styles.expenseItem, selected && styles.selectedExpenseItem, styles.expenseItemDespesa];
@@ -15,25 +20,52 @@ const Expense = ({ expense, onPressExpense, selected, onSelectExpense, onDeleteE
     return [styles.expenseItem, selected && styles.selectedExpenseItem];
   };
 
+  const handleDelete = () => {
+    setShowModal(false);
+    onDeleteExpense(expense);
+  };
+
   const swipeButtons = [
     <TouchableOpacity
       style={styles.deleteButton}
-      onPress={() => onDeleteExpense && onDeleteExpense(expense)}
+      onPress={() => {
+        setShowModal(true);
+        setShowActions(false);
+      }}
     >
       <Text style={styles.deleteButtonText}>Delete</Text>
     </TouchableOpacity>,
     <TouchableOpacity
       style={styles.editButton}
-      onPress={() => onSelectExpense && onSelectExpense(expense)}
+      onPress={() => {
+        onSelectExpense && onSelectExpense(expense);
+        setShowActions(false);
+      }}
     >
       <Text style={styles.editButtonText}>Edit</Text>
     </TouchableOpacity>
   ];
 
+  const handleSwipeRightOpen = () => {
+    setShowActions(true);
+  };
+
   return (
-    <Swipeable rightButtons={swipeButtons} onSwipeableRightOpen={() => {}}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+    <Swipeable renderRightActions={() => (
+      <View style={styles.rightActionsContainer}>
+        {swipeButtons.map((button, index) => (
+          <Animated.View key={index} style={styles.rightAction}>
+            {button}
+          </Animated.View>
+        ))}
+      </View>
+    )} onSwipeableRightOpen={handleSwipeRightOpen} onSwipeableRightWillOpen={() => setShowActions(true)} onSwipeableRightClose={() => setShowActions(false)}>
       <TouchableOpacity
-        onPress={() => onSelectExpense && onSelectExpense(expense)}
+        onPress={() => {
+          onSelectExpense && onSelectExpense(expense);
+          setShowActions(false);
+        }}
         style={getExpenseItemStyle()} 
       >
         <View style={styles.expenseItemLeft}>
@@ -45,6 +77,15 @@ const Expense = ({ expense, onPressExpense, selected, onSelectExpense, onDeleteE
         </View>
       </TouchableOpacity>
     </Swipeable>
+    <View>
+      <MyModal
+        visible={showModal}
+        modalText={'Tem certeza que deseja excluir?'}
+        onClose={() => setShowModal(false)}
+        onDelete={handleDelete}
+      />
+    </View>
+     </GestureHandlerRootView>
   );
 };
 
