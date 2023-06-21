@@ -32,17 +32,6 @@ export default function App() {
   const [expenseType, setExpenseType] = useState('despesa');
   const [selectedExpenseType, setSelectedExpenseType] = useState('despesa');
 
-
-
-  const handleSelectExpense = (expense) => {
-    setSelectedExpense(expense);
-  };
-
-
-  const handleOpenModal = () => {
-    setModalVisible(true);
-  };
-
   const handleCloseModal = () => {
     setModalVisible(false);
   };
@@ -74,7 +63,6 @@ export default function App() {
     try {
       const expenses = await getExpenses();
       setExpenses(expenses);
-      // Calcular o total das despesas
       const totalDespesas = expenses.reduce((acc, expense) => {
         if (expense.expenseType === 'despesa') {
           return acc + parseFloat(expense.value);
@@ -231,8 +219,10 @@ export default function App() {
       </ScrollView>
       <ScrollView style={styles.listArea}>
         <Expenses expenses={expenses}
+          onDeleteExpense={handleDeleteExpense}
           onPressExpense={handleDeleteExpense}
           selectedExpense={selectedExpense}
+          onEditExpense={setSelectedExpense}
           onSelectExpense={setSelectedExpense} />
       </ScrollView>
     </View>

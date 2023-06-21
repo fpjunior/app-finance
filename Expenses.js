@@ -24,7 +24,7 @@ const Expense = ({ expense, onPressExpense, selected, onSelectExpense, onDeleteE
     </TouchableOpacity>,
     <TouchableOpacity
       style={styles.editButton}
-      onPress={() => onEditExpense && onEditExpense(expense)}
+      onPress={() => onSelectExpense && onSelectExpense(expense)}
     >
       <Text style={styles.editButtonText}>Edit</Text>
     </TouchableOpacity>
